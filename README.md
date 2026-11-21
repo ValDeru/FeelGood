@@ -1,14 +1,14 @@
 # FeelGood
 
-A small web app (installable on a phone's home screen) that helps people aged 50+ keep body and mind fit, with a focus on older adults (75+) and dementia prevention. Italian and English.
+A small web app (installable on a phone's home screen) that helps people aged 50+ keep body and mind fit, with a focus on older adults (70+) and dementia prevention. Italian and English.
 
 ## What it does
 
-- **Profiles by age and mobility.** Each person picks their name; content is filtered by age and by how they move (independent, needs support, seated only). From 75, or when support is needed, yoga, pilates, Jivamukti and floor exercises are hidden (a family member can turn them back on).
+- **Two age groups: 50+ and 70+.** No personal names: you pick your group. 50+ gets the full range (posture, strength, pilates, yoga, Jivamukti). 70+ gets gentle exercises, seated or with support, balance work every day, and no yoga, pilates or floor work (the family area can turn these back on, or set a group to seated only).
 - **A different plan every day.** Each day focuses on one body part (rotating), with a warm-up, balance work, focus exercises, strength on 2–3 days a week, a cool-down, a walk goal and a mind game. Exercises done in the last few days are avoided, so the plan doesn't repeat. Any exercise can be swapped.
-- **Family area (PIN).** Log the physio's own exercises, mark familiar ones (they appear more often), hide unsuitable ones, edit profiles, and copy all data to another phone with a transfer code.
+- **Family area (PIN).** Log the physio's own exercises, mark familiar ones (they appear more often), hide unsuitable ones, adjust each group's settings, and copy all data to another phone with a transfer code.
 - **Mind games in Italian.** Memory, anagrams, quick maths, colours (Stroop), number sequence and one-minute words. Difficulty adapts to results.
-- **Progress** against WHO targets: 150 active minutes a week, strength on 2+ days, balance on 3+ days from 65.
+- **Progress** against WHO targets: 150 active minutes a week, strength on 2+ days, balance on 3+ days (daily for 70+).
 - **Safety and accessibility.** Safety notice before starting, "hold a chair" warnings, stop signs, large text with three sizes, 56px+ buttons, read-aloud, light and dark themes.
 
 ## Medical basis

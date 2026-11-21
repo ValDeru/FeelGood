@@ -1,7 +1,7 @@
 /* FeelGood app logic. Plain JavaScript, no build step. Data stays on this device (localStorage). */
 (function () {
   "use strict";
-  const KEY = "feelgood.v1";
+  const KEY = "feelgood.v2";
   const main = document.getElementById("main");
   let ST = load();
   let unlocked = false;
@@ -14,18 +14,17 @@
     return { id, name, age, lang, mob, allowFloor: false, familiar: [], hidden: [], log: [], brain: [], lvl: {}, ack: false, plans: {}, walk: {} };
   }
   function seed() {
-    const m = mkProfile("p1", "Mamma", 78, "it", "support");
-    const p = mkProfile("p2", "Papà", 80, "it", "support");
-    const v = mkProfile("p3", "Val", 50, "it", "independent");
+    // Two general age groups instead of named people
+    const a = mkProfile("p50", "50+", 50, "it", "independent");
+    const b = mkProfile("p70", "70+", 70, "it", "support");
     const custom = [
-      { id: "c-bastone", cat: "custom", part: "shoulders", s: true, c: false, f: false, min: 2, for: ["p1", "p2"], example: true,
+      { id: "c-bastone", cat: "custom", part: "shoulders", s: true, c: false, f: false, min: 2, for: ["p70"], example: true,
         text: { n: "Bastone sopra la testa (esempio)", d: "Seduti, tenete un bastone o il manico di una scopa con le mani alla larghezza delle spalle. Alzatelo lentamente sopra la testa e riportatelo giù.", r: "10 volte" } },
-      { id: "c-torsione", cat: "custom", part: "back", s: true, c: false, f: false, min: 2, for: ["p1", "p2"], example: true,
+      { id: "c-torsione", cat: "custom", part: "back", s: true, c: false, f: false, min: 2, for: ["p70"], example: true,
         text: { n: "Torsione con bastone (esempio)", d: "Seduti, bastone appoggiato sulle spalle dietro la nuca. Ruotate lentamente il busto a destra e a sinistra, bacino fermo.", r: "8 per lato" } }
     ];
-    m.familiar = ["c-bastone", "c-torsione", "p1", "p2", "b1", "s1"];
-    p.familiar = ["c-bastone", "c-torsione", "p1", "p2", "b1"];
-    return { v: 1, active: null, pin: null, size: 1, profiles: [m, p, v], custom, example: true };
+    b.familiar = ["c-bastone", "c-torsione", "p1", "p2", "b1", "s1"];
+    return { v: 2, active: null, pin: null, size: 1, profiles: [a, b], custom };
   }
   function load() {
     try { const raw = localStorage.getItem(KEY); if (raw) { const d = JSON.parse(raw); if (d && d.profiles) return d; } } catch (e) {}
@@ -50,11 +49,13 @@
   const uid = () => Math.random().toString(36).slice(2, 8);
   function clearTimers() { timers.forEach(x => { clearInterval(x); clearTimeout(x); }); timers = []; try { speechSynthesis.cancel(); } catch (e) {} }
 
+  const grpSub = p => t(p.age >= 70 ? "grp70" : "grp50");
+
   // ---------- exercises & eligibility ----------
   const allEx = () => EXERCISES.concat(ST.custom || []);
   const exById = id => allEx().find(e => e.id === id);
   const txt = (ex, k) => ex.cat === "custom" ? ex.text[k] : ex[L()][k];
-  function floorOK(p) { return p.allowFloor || (p.age < 75 && p.mob === "independent"); }
+  function floorOK(p) { return p.allowFloor || (p.age < 70 && p.mob === "independent"); }
   function ok(ex, p, ignoreHidden) {
     if (!ignoreHidden && p.hidden.includes(ex.id)) return false;
     if (ex.cat === "custom") return (ex.for || []).includes(p.id);
@@ -66,7 +67,7 @@
   const pool = p => allEx().filter(e => ok(e, p));
 
   // ---------- daily plan ----------
-  function walkGoal(p) { return p.age >= 75 ? 15 : p.age >= 65 ? 20 : 30; }
+  function walkGoal(p) { return p.age >= 70 ? 15 : 30; }
   function planFor(p, ds) {
     if (p.plans[ds]) return p.plans[ds];
     const n = dayNum(ds), wd = dow(ds), r = rng(hash(p.id + ds));
@@ -89,10 +90,10 @@
       if (all.filter(e => e.part === cand && e.cat !== "warm").length >= 2) { focus = cand; break; }
     }
     pick(e => e.cat === "warm", 1);
-    const balanceCount = p.age >= 75 ? 2 : p.age >= 65 ? 1 : ([1, 3, 5].includes(wd) ? 1 : 0); // WHO: balance 3+ days/week from 65
+    const balanceCount = p.age >= 70 ? 2 : ([1, 3, 5].includes(wd) ? 1 : 0); // WHO: balance 3+ days/week for older adults; daily for 70+
     pick(e => e.cat === "balance", balanceCount);
     pick(e => e.part === focus && !["warm", "balance"].includes(e.cat) && !FLOOR_CATS.includes(e.cat), 3, true);
-    const strengthDay = p.age >= 65 ? [1, 3, 5].includes(wd) : [1, 4].includes(wd); // WHO: strength 2+ days/week
+    const strengthDay = p.age >= 70 ? [1, 3, 5].includes(wd) : [1, 4].includes(wd); // WHO: strength 2+ days/week
     if (strengthDay) pick(e => e.cat === "strength" && e.part !== focus, 2);
     if (floorOK(p)) {
       const flow = { 2: "pilates", 4: "yoga", 6: "jivamukti", 0: "yoga" }[wd];
@@ -177,8 +178,7 @@
 
   VIEWS.who = () => {
     return '<section class="stack"><h1>' + esc(t("whoUses")) + '</h1><p class="muted">' + esc(t("whoSub")) + "</p>" +
-      '<div class="people">' + ST.profiles.map(p => '<button class="person" data-act="pick" data-id="' + p.id + '"><span class="avatar">' + esc(p.name.slice(0, 1)) + '</span><span><b>' + esc(p.name) + "</b><small>" + p.age + " " + (p.lang === "it" ? "anni" : "years") + "</small></span></button>").join("") + "</div>" +
-      (ST.example ? '<p class="note">' + esc(t("exampleNote")) + "</p>" : "") + "</section>";
+      '<div class="people">' + ST.profiles.map(p => '<button class="person" data-act="pick" data-id="' + p.id + '"><span class="avatar">' + esc(p.name.slice(0, 1)) + '</span><span><b>' + esc(p.name) + "</b><small>" + esc(grpSub(p)) + "</small></span></button>").join("") + "</div></section>";
   };
 
   function exCard(p, id, idx) {
@@ -205,7 +205,7 @@
     const tips = TIPS[L()], tip = tips[dayNum(ds) % tips.length];
     const game = GAMES.find(g => g.id === plan.game);
     let h = '<section class="stack">';
-    h += '<header class="hello"><p class="date">' + esc(dateTxt) + "</p><h1>" + esc(hello) + ", " + esc(p.name) + "</h1></header>";
+    h += '<header class="hello"><p class="date">' + esc(dateTxt) + "</p><h1>" + esc(hello) + "</h1></header>";
     if (!p.ack) {
       h += '<div class="safety" role="note"><h2>' + esc(t("safetyTitle")) + "</h2><p>" + esc(t("safetyBody")) + '</p><p class="stop">' + esc(t("safetyStop")) + "</p><p>" + esc(t("safetyHow")) + '</p><button class="btn primary big" data-act="ack">' + esc(t("understood")) + "</button></div>";
     }
@@ -276,7 +276,7 @@
     const mx = Math.max(30, ...days.map(d => d.min));
     const stat = (label, val, goal, unit) => '<div class="stat"><p class="eyebrow">' + esc(label) + '</p><p class="num"><b>' + val + "</b>" + (goal ? "<span> / " + goal + (unit || "") + "</span>" : "") + "</p>" + (goal ? '<div class="bar"><i style="width:' + Math.min(100, val / goal * 100) + '%"></i></div>' : "") + "</div>";
     let h = '<section class="stack"><h1>' + esc(t("progress")) + "</h1><h2>" + esc(t("weekTitle")) + "</h2>";
-    h += '<div class="stats">' + stat(t("minutesActive"), tot, 150) + stat(t("strengthDays"), sd, 2) + (p.age >= 65 ? stat(t("balanceDays"), bd, 3) : "") + stat(t("brainSessions"), bs, 5) + stat(t("streak"), streak) + "</div>";
+    h += '<div class="stats">' + stat(t("minutesActive"), tot, 150) + stat(t("strengthDays"), sd, 2) + stat(t("balanceDays"), bd, 3) + stat(t("brainSessions"), bs, 5) + stat(t("streak"), streak) + "</div>";
     h += '<div class="card"><div class="chart" role="img" aria-label="' + esc(t("minutesActive")) + '">' + days.map(d => '<div class="col"><span class="v">' + (d.min || "") + '</span><i style="height:' + (d.min / mx * 100) + '%"></i><span class="d">' + T[L()].days[dow(d.ds)] + "</span></div>").join("") + "</div></div>";
     h += '<div class="card guide"><h2>' + esc(t("guideTitle")) + "</h2><p>" + esc(t("guide1")) + "</p><p>" + esc(t("guide2")) + "</p></div>";
     return h + "</section>";
@@ -306,9 +306,9 @@
     let h = '<button class="btn ghost" data-act="lock">' + esc(t("lock")) + "</button>";
     if (ui.flash) { h += '<p class="flash" role="status">' + esc(ui.flash) + "</p>"; ui.flash = ""; }
     // profile picker
-    h += "<h3>" + esc(t("profiles")) + '</h3><div class="row wrap">' + ST.profiles.map(q => '<button class="btn ' + (q.id === ed.id ? "primary" : "ghost") + '" data-act="edit" data-id="' + q.id + '">' + esc(q.name) + " (" + q.age + ")</button>").join("") + "</div>";
+    h += "<h3>" + esc(t("profiles")) + '</h3><div class="row wrap">' + ST.profiles.map(q => '<button class="btn ' + (q.id === ed.id ? "primary" : "ghost") + '" data-act="edit" data-id="' + q.id + '">' + esc(q.name) + "</button>").join("") + "</div>";
     // edit form
-    h += '<form data-form="profile" class="stack formbox"><div class="grid2"><div><label for="pf-name">' + esc(t("name")) + '</label><input id="pf-name" name="name" value="' + esc(ed.name) + '" required></div><div><label for="pf-age">' + esc(t("age")) + '</label><input id="pf-age" name="age" type="number" min="18" max="110" value="' + ed.age + '" required></div></div>';
+    h += '<form data-form="profile" class="stack formbox"><p class="muted small">' + esc(grpSub(ed)) + "</p>";
     h += '<label for="pf-lang">' + esc(t("language")) + '</label><select id="pf-lang" name="lang"><option value="it"' + (ed.lang === "it" ? " selected" : "") + '>Italiano</option><option value="en"' + (ed.lang === "en" ? " selected" : "") + ">English</option></select>";
     h += "<fieldset><legend>" + esc(t("mobility")) + "</legend>" + ["independent", "support", "seated"].map(m => '<label class="radio"><input type="radio" name="mob" value="' + m + '"' + (ed.mob === m ? " checked" : "") + "> " + esc(t("mob_" + m)) + "</label>").join("") + "</fieldset>";
     h += '<label class="radio"><input type="checkbox" name="allowFloor"' + (ed.allowFloor ? " checked" : "") + "> <span>" + esc(t("allowFloor")) + "<small>" + esc(t("allowFloorSub")) + "</small></span></label>";
@@ -336,7 +336,6 @@
     h += "<fieldset><legend>" + esc(t("forWho")) + "</legend>" + ST.profiles.map(q => '<label class="radio"><input type="checkbox" name="for" value="' + q.id + '"' + (q.id === ed.id ? " checked" : "") + "> " + esc(q.name) + "</label>").join("") + "</fieldset>";
     h += '<button class="btn primary">' + esc(t("add")) + "</button></form>";
     // add profile
-    h += '<form data-form="newprofile" class="stack formbox"><h3>' + esc(t("newProfile")) + '</h3><div class="grid2"><div><label for="np-n">' + esc(t("name")) + '</label><input id="np-n" name="name" required></div><div><label for="np-a">' + esc(t("age")) + '</label><input id="np-a" name="age" type="number" min="18" max="110" required></div></div><button class="btn primary">' + esc(t("add")) + "</button></form>";
     // transfer
     const code = exportCode();
     h += '<div class="stack formbox"><h3>' + esc(t("transfer")) + '</h3><p class="muted small">' + esc(t("transferSub")) + '</p><textarea id="exp" rows="3" readonly>' + esc(code) + '</textarea><button class="btn ghost" data-act="copy">' + esc(t("copy")) + '</button><form data-form="import" class="stack"><label for="imp">' + esc(t("importLabel")) + '</label><textarea id="imp" name="code" rows="3"></textarea><button class="btn ghost">' + esc(t("importBtn")) + "</button></form></div>";
@@ -349,7 +348,7 @@
   }
 
   // ---------- games ----------
-  function startLvl(p) { return p.age >= 75 ? 1 : 2; }
+  function startLvl(p) { return p.age >= 70 ? 1 : 2; }
   function finishGame(score, verdict, detail) {
     const p = P(), g = G.id;
     let lv = p.lvl[g] || startLvl(p);
@@ -547,7 +546,7 @@
     },
     profile: f => {
       const p = ST.profiles.find(q => q.id === ui.editId);
-      p.name = f.name.value.trim() || p.name; p.age = Math.max(18, Math.min(110, +f.age.value || p.age)); p.lang = f.lang.value;
+      p.lang = f.lang.value;
       p.mob = (f.querySelector("input[name=mob]:checked") || {}).value || p.mob; p.allowFloor = f.allowFloor.checked; p.plans = {};
       ST.example = false; save(); ui.flash = t("saved"); keepScroll();
     },
@@ -561,7 +560,7 @@
     },
     newprofile: f => {
       const name = f.name.value.trim(), age = +f.age.value; if (!name || !age) return;
-      const p = mkProfile("p" + uid(), name, Math.max(18, Math.min(110, age)), L(), age >= 75 ? "support" : "independent");
+      const p = mkProfile("p" + uid(), name, Math.max(18, Math.min(110, age)), L(), age >= 70 ? "support" : "independent");
       ST.profiles.push(p); ui.editId = p.id; ST.example = false; save(); keepScroll();
     },
     import: f => {
