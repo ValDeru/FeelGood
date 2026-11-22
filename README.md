@@ -9,7 +9,7 @@ A small web app (installable on a phone's home screen) that helps people aged 50
 - **Family area (PIN).** Log the physio's own exercises, mark familiar ones (they appear more often), hide unsuitable ones, adjust each group's settings, and copy all data to another phone with a transfer code.
 - **Mind games in Italian.** Memory, anagrams, quick maths, colours (Stroop), number sequence and one-minute words. Difficulty adapts to results.
 - **Progress** against WHO targets: 150 active minutes a week, strength on 2+ days, balance on 3+ days (daily for 70+).
-- **Safety and accessibility.** Safety notice before starting, "hold a chair" warnings, stop signs, large text with three sizes, 56px+ buttons, read-aloud, light and dark themes.
+- **Safety and accessibility.** Safety notice before starting, "hold a chair" warnings, stop signs, large text with three sizes, 48px+ buttons, read-aloud, light and dark themes.
 
 ## Medical basis
 
@@ -21,6 +21,6 @@ This app gives general information and does not replace a doctor or physiotherap
 
 ## Tech
 
-Plain HTML, CSS and JavaScript, no build step. Data stays on the device (localStorage). `sw.js` caches the app for offline use. Hosted with GitHub Pages from the `main` branch root.
+Plain HTML, CSS and JavaScript, no build step. The look follows the FeelGood Figma file; `icons.js` holds the icons exported from its Icons page. Data stays on the device (localStorage). `sw.js` caches the app for offline use. Hosted with GitHub Pages from the `main` branch root.
 
 Run locally: open `index.html`, or `python3 -m http.server` and visit http://localhost:8000.

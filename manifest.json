@@ -1,3 +1,3 @@
 { "name": "FeelGood", "short_name": "FeelGood", "description": "Corpo e mente in forma, ogni giorno.", "lang": "it",
-  "start_url": "./#today", "scope": "./", "display": "standalone", "background_color": "#EEF4EE", "theme_color": "#406B49",
+  "start_url": "./#today", "scope": "./", "display": "standalone", "background_color": "#FCF6EA", "theme_color": "#406B49",
   "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }] }
