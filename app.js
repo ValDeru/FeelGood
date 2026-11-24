@@ -143,13 +143,17 @@
     back: '<path d="M15 5l-7 7 7 7"/>', chair: '<path d="M7 3v18M7 12h10v9M17 12V3"/>', walk: '<circle cx="13" cy="4" r="2"/><path d="M11 21l2-7-3-3 1-4 4 3 3 1M10 11l-3 2v4"/>'
   };
   const icon = (k, cls) => '<svg class="ic ' + (cls || "") + '" viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + "</svg>";
+  // Filled icons from the Figma file (icons.js)
+  const ic48 = k => '<svg class="ic48" viewBox="0 0 48 48" aria-hidden="true">' + ICONS48[k] + "</svg>";
 
   // ---------- shell ----------
   function applySize() { document.documentElement.style.setProperty("--scale", [1, 1.15, 1.32][ST.size || 0]); document.documentElement.lang = L(); }
+  const TAB_LABEL = { progress: "tabProgress", family: "tabFamily" };
   function nav(active) {
     const tabs = ["today", "exercises", "brain", "progress", "family"];
     document.getElementById("tabs").innerHTML = tabs.map(k =>
-      '<a href="#' + k + '" class="tab' + (k === active ? " on" : "") + '"' + (k === active ? ' aria-current="page"' : "") + ">" + icon(k) + "<span>" + esc(t(k)) + "</span></a>").join("");
+      '<a href="#' + k + '" class="tab' + (k === active ? " on" : "") + '"' + (k === active ? ' aria-current="page"' : "") + ">" + ic48(k === active ? k + "On" : k) + "<span>" + esc(t(TAB_LABEL[k] || k)) + "</span></a>").join("");
+    document.getElementById("brand").innerHTML = ic48("brand") + "FeelGood";
     const p = P();
     document.getElementById("who").innerHTML = p ? '<a href="#who" class="whobtn">' + esc(p.name) + "</a>" : "";
   }
@@ -160,11 +164,11 @@
     if (!P() && h !== "family") return render("who");
     if (h.startsWith("ex-")) return render("detail", h.slice(3));
     if (h.startsWith("game-")) return render("game", h.slice(5));
-    render(["today", "exercises", "brain", "progress", "family", "who"].includes(h) ? h : "today");
+    render(["today", "plan", "exercises", "brain", "progress", "family", "who"].includes(h) ? h : "today");
   }
   function render(view, arg) {
     applySize();
-    const base = view === "detail" ? "exercises" : view === "game" ? "brain" : view;
+    const base = view === "detail" ? "exercises" : view === "game" ? "brain" : view === "plan" ? "today" : view;
     nav(base);
     const html = VIEWS[view](arg);
     if (html !== undefined) main.innerHTML = html;
@@ -177,8 +181,8 @@
   const VIEWS = {};
 
   VIEWS.who = () => {
-    return '<section class="stack"><h1>' + esc(t("whoUses")) + '</h1><p class="muted">' + esc(t("whoSub")) + "</p>" +
-      '<div class="people">' + ST.profiles.map(p => '<button class="person" data-act="pick" data-id="' + p.id + '"><span class="avatar">' + esc(p.name.slice(0, 1)) + '</span><span><b>' + esc(p.name) + "</b><small>" + esc(grpSub(p)) + "</small></span></button>").join("") + "</div></section>";
+    return '<section class="stack"><h1>' + esc(t("whoUses")) + '</h1><p class="lead">' + esc(t("whoSub")) + "</p>" +
+      '<div class="people">' + ST.profiles.map(p => '<button class="person' + (p.age >= 70 ? " g70" : "") + '" data-act="pick" data-id="' + p.id + '"><span class="badge">' + esc(p.name) + "</span><small>" + esc(grpSub(p)) + "</small></button>").join("") + "</div></section>";
   };
 
   function exCard(p, id, idx) {
@@ -186,14 +190,19 @@
     const done = isDone(p, id);
     const famStar = p.familiar.includes(id) || ex.cat === "custom";
     return '<li class="excard' + (done ? " done" : "") + '">' +
-      '<div class="exhead"><span class="chip cat-' + ex.cat + '">' + esc(T[L()].cats[ex.cat]) + "</span>" + (famStar ? '<span class="fam" title="' + esc(t("familiar")) + '">' + icon("star") + "</span>" : "") + (ex.c ? '<span class="sup" title="' + esc(t("holdOn")) + '">' + icon("chair") + "</span>" : "") + "</div>" +
+      '<div class="extop">' + (famStar ? '<span class="fam" title="' + esc(t("familiar")) + '">' + ic48("starOn") + "</span>" : "") + (ex.c ? '<span class="sup" title="' + esc(t("holdOn")) + '">' + icon("chair") + "</span>" : "") + '<span class="chip cat-' + ex.cat + '">' + esc(T[L()].cats[ex.cat]) + "</span></div>" +
       '<a class="exname" href="#ex-' + ex.id + '">' + esc(txt(ex, "n")) + "</a>" +
       '<p class="dose">' + esc(txt(ex, "r")) + "</p>" +
       '<div class="row">' +
-      '<button class="btn ' + (done ? "ok" : "primary") + '" data-act="done" data-id="' + ex.id + '" aria-pressed="' + done + '">' + icon("check") + esc(done ? t("done") : t("markDone")) + "</button>" +
-      '<a class="btn ghost" href="#ex-' + ex.id + '">' + esc(t("open")) + "</a>" +
-      (idx !== undefined && !done ? '<button class="btn ghost" data-act="swap" data-i="' + idx + '" aria-label="' + esc(t("swap")) + '">' + icon("swap") + esc(t("swap")) + "</button>" : "") +
+      '<button class="btn quiet' + (done ? " ok" : "") + '" data-act="done" data-id="' + ex.id + '" aria-pressed="' + done + '">' + (done ? icon("check") : "") + esc(done ? t("done") : t("markDone")) + "</button>" +
+      '<a class="btn quiet" href="#ex-' + ex.id + '">' + esc(t("open")) + "</a>" +
+      (idx !== undefined && !done ? '<button class="btn quiet" data-act="swap" data-i="' + idx + '" aria-label="' + esc(t("swap")) + '">' + icon("swap") + esc(t("swap")) + "</button>" : "") +
       "</div></li>";
+  }
+  // A green or peach card with a big label, a count and a progress bar (Figma: "Focus di oggi", "Allena la mente")
+  function meterCard(kind, eyebrow, label, n, total, button) {
+    return '<div class="card ' + kind + '"><p class="eyebrow">' + esc(eyebrow) + '</p><div><div class="meterrow"><span class="big">' + esc(label) + "</span><b>" + n + '</b></div><p class="of">' + esc(t("ofDone", { n: total })) + '</p></div>' +
+      '<div class="bar" role="img" aria-label="' + n + " / " + total + '"><i style="width:' + Math.min(100, total ? n / total * 100 : 0) + '%"></i></div><div class="row two">' + button + "</div></div>";
   }
 
   VIEWS.today = () => {
@@ -204,17 +213,25 @@
     const walked = p.walk[ds] || 0, wg = walkGoal(p);
     const tips = TIPS[L()], tip = tips[dayNum(ds) % tips.length];
     const game = GAMES.find(g => g.id === plan.game);
+    const n = dayNum(ds), weekGames = p.brain.filter(b => { const k = n - dayNum(b.d); return k >= 0 && k < 7; }).length;
     let h = '<section class="stack">';
     h += '<header class="hello"><p class="date">' + esc(dateTxt) + "</p><h1>" + esc(hello) + "</h1></header>";
     if (!p.ack) {
       h += '<div class="safety" role="note"><h2>' + esc(t("safetyTitle")) + "</h2><p>" + esc(t("safetyBody")) + '</p><p class="stop">' + esc(t("safetyStop")) + "</p><p>" + esc(t("safetyHow")) + '</p><button class="btn primary big" data-act="ack">' + esc(t("understood")) + "</button></div>";
     }
-    h += '<div class="summary"><div><p class="eyebrow">' + esc(t("focus")) + '</p><p class="focus">' + esc(T[L()].parts[plan.focus]) + '</p></div><div class="meter" role="img" aria-label="' + doneN + "/" + total + '"><b>' + doneN + "</b><span>" + esc(t("ofDone", { n: total })) + '</span><i style="--p:' + (total ? doneN / total : 0) + '"></i></div></div>';
-    h += "<h2>" + esc(t("planTitle")) + '</h2><ol class="exlist">' + plan.items.map((id, i) => exCard(p, id, i)).join("") + "</ol>";
-    h += '<div class="card walk"><div class="exhead">' + icon("walk") + "<h3>" + esc(t("walk")) + "</h3></div><p>" + esc(t("walkGoal", { n: wg })) + '</p><p class="walked"><b>' + walked + "</b> / " + wg + " " + esc(t("minutes")) + '</p><div class="bar"><i style="width:' + Math.min(100, walked / wg * 100) + '%"></i></div><div class="row"><button class="btn ghost" data-act="walk" data-n="5">+5 ' + esc(t("minutes")) + '</button><button class="btn ghost" data-act="walk" data-n="10">+10 ' + esc(t("minutes")) + '</button>' + (walked ? '<button class="btn ghost" data-act="walk" data-n="-5">−5</button>' : "") + "</div></div>";
+    h += meterCard("green", t("focus"), T[L()].parts[plan.focus], doneN, total, '<a class="btn primary" href="#plan">' + esc(doneN ? t("continue") : t("start")) + "</a>");
     const playedToday = p.brain.some(b => b.d === ds);
-    h += '<a class="card gamecard" href="#game-' + game.id + '"><p class="eyebrow">' + esc(t("gameOfDay")) + "</p><h3>" + esc(game[L()][0]) + "</h3><p>" + esc(game[L()][1]) + '</p><span class="btn primary">' + (playedToday ? icon("check") + esc(t("bestToday")) : esc(t("play"))) + "</span></a>";
+    h += meterCard("peach", t("gameOfDay"), game[L()][0], weekGames, 5, '<a class="btn peach" href="#game-' + game.id + '">' + (playedToday ? icon("check") + esc(t("bestToday")) : esc(t("play"))) + "</a>");
+    h += '<div class="card walk"><p class="eyebrow">' + ic48("walk") + esc(t("walk")) + "</p><p>" + esc(t("walkGoal", { n: wg })) + '</p><p class="walked"><b>' + walked + "</b> / " + wg + " " + esc(t("minutes")) + '</p><div class="bar"><i style="width:' + Math.min(100, walked / wg * 100) + '%"></i></div><div class="row"><button class="btn peachsoft" data-act="walk" data-n="5">+5 ' + esc(t("minutes")) + '</button><button class="btn peachsoft" data-act="walk" data-n="10">+10 ' + esc(t("minutes")) + "</button>" + (walked ? '<button class="btn peachsoft" data-act="walk" data-n="-5">−5</button>' : "") + "</div></div>";
     h += '<div class="card tip"><p class="eyebrow">' + esc(t("tip")) + "</p><h3>" + esc(tip[0]) + "</h3><p>" + esc(tip[1]) + "</p></div>";
+    return h + "</section>";
+  };
+
+  VIEWS.plan = () => {
+    const p = P(), plan = planFor(p, today());
+    let h = '<section class="stack"><a class="btn ghost backbtn" href="#today">' + ic48("back") + esc(t("today")) + "</a>";
+    h += '<header class="hello"><p class="kicker">' + esc(t("planTitle")) + "</p><h1>" + esc(T[L()].parts[plan.focus]) + "</h1></header>";
+    h += '<ol class="exlist">' + plan.items.map((id, i) => exCard(p, id, i)).join("") + "</ol>";
     return h + "</section>";
   };
 
@@ -223,17 +240,17 @@
     if (!ex) { location.hash = "#exercises"; return ""; }
     const done = isDone(p, id);
     const sayText = txt(ex, "n") + ". " + txt(ex, "d") + ". " + txt(ex, "r") + (ex.c ? ". " + t("holdOn") : "");
-    let h = '<section class="stack detail"><button class="btn ghost backbtn" data-act="back">' + icon("back") + esc(t("back")) + "</button>";
+    let h = '<section class="stack detail"><button class="btn ghost backbtn" data-act="back">' + ic48("back") + esc(t("back")) + "</button>";
     h += '<div class="exhead"><span class="chip cat-' + ex.cat + '">' + esc(T[L()].cats[ex.cat]) + '</span><span class="chip plain">' + esc(T[L()].parts[ex.part]) + "</span>" + (ex.s ? '<span class="chip plain">' + esc(t("seatedOk")) + "</span>" : "") + "</div>";
     h += "<h1>" + esc(txt(ex, "n")) + "</h1>";
     if (ex.c) h += '<p class="warnline">' + icon("chair") + esc(t("holdOn")) + "</p>";
     if (ex.f) h += '<p class="warnline">' + esc(t("floorNote")) + "</p>";
     h += '<p class="how">' + esc(txt(ex, "d")) + "</p>";
-    h += '<div class="dosebox"><p class="eyebrow">' + esc(t("dose")) + "</p><p>" + esc(txt(ex, "r")) + "</p></div>";
+    h += '<div class="card green dosebox"><p class="eyebrow">' + esc(t("dose")) + "</p><p>" + esc(txt(ex, "r")) + "</p></div>";
     h += '<div class="timer" id="timer" hidden><b id="tleft">60</b></div>';
     h += '<div class="row wrap"><button class="btn ghost" data-act="say" data-text="' + esc(sayText) + '">' + icon("speak") + esc(t("readAloud")) + '</button><button class="btn ghost" data-act="timer" id="tbtn">' + esc(t("timer")) + "</button></div>";
     h += '<button class="btn big ' + (done ? "ok" : "primary") + '" data-act="done" data-id="' + ex.id + '" aria-pressed="' + done + '">' + icon("check") + esc(done ? t("done") : t("markDone")) + "</button>";
-    h += '<p class="small muted">' + esc(t("safetyStop")) + "</p>";
+    h += '<p class="stopnote">' + esc(t("safetyStop")) + "</p>";
     return h + "</section>";
   };
 
@@ -244,9 +261,9 @@
     if (!parts.includes(ui.part)) ui.part = "all";
     if (!cats.includes(ui.cat)) ui.cat = "all";
     const shown = list.filter(e => (ui.part === "all" || e.part === ui.part) && (ui.cat === "all" || e.cat === ui.cat));
-    let h = '<section class="stack"><h1>' + esc(t("exercises")) + "</h1>";
-    h += '<div class="filters" role="group" aria-label="' + esc(t("exPart")) + '">' + parts.map(pt => '<button class="fchip' + (ui.part === pt ? " on" : "") + '" data-act="fpart" data-v="' + pt + '" aria-pressed="' + (ui.part === pt) + '">' + esc(pt === "all" ? t("allParts") : T[L()].parts[pt]) + "</button>").join("") + "</div>";
-    h += '<div class="filters" role="group">' + cats.map(c => '<button class="fchip' + (ui.cat === c ? " on" : "") + '" data-act="fcat" data-v="' + c + '" aria-pressed="' + (ui.cat === c) + '">' + esc(c === "all" ? t("allCats") : T[L()].cats[c]) + "</button>").join("") + "</div>";
+    let h = '<section class="stack"><header class="hello"><p class="kicker">' + esc(t("exCount", { n: shown.length })) + "</p><h1>" + esc(t("exercises")) + "</h1></header>";
+    h += '<p class="flabel">' + esc(t("exPart")) + '</p><div class="filters" role="group" aria-label="' + esc(t("exPart")) + '">' + parts.map(pt => '<button class="fchip' + (ui.part === pt ? " on" : "") + '" data-act="fpart" data-v="' + pt + '" aria-pressed="' + (ui.part === pt) + '">' + esc(pt === "all" ? t("allParts") : T[L()].parts[pt]) + "</button>").join("") + "</div>";
+    h += '<p class="flabel">' + esc(t("exType")) + '</p><div class="filters" role="group" aria-label="' + esc(t("exType")) + '">' + cats.map(c => '<button class="fchip' + (ui.cat === c ? " on" : "") + '" data-act="fcat" data-v="' + c + '" aria-pressed="' + (ui.cat === c) + '">' + esc(c === "all" ? t("allCats") : T[L()].cats[c]) + "</button>").join("") + "</div>";
     if (!floorOK(p)) h += '<p class="note">' + esc(t("hiddenFloor")) + "</p>";
     h += '<ol class="exlist">' + shown.map(e => exCard(p, e.id)).join("") + "</ol>";
     return h + "</section>";
@@ -254,10 +271,10 @@
 
   VIEWS.brain = () => {
     const p = P(), ds = today();
-    let h = '<section class="stack"><h1>' + esc(t("brain")) + '</h1><div class="games">';
+    let h = '<section class="stack"><header class="hello"><p class="kicker">' + esc(t("gameOfDay")) + "</p><h1>" + esc(t("brain")) + '</h1></header><div class="games">';
     GAMES.forEach(g => {
       const lv = p.lvl[g.id] || startLvl(p), played = p.brain.some(b => b.d === ds && b.g === g.id);
-      h += '<a class="card game" href="#game-' + g.id + '"><span class="chip plain">' + esc(g[L()][2]) + "</span><h3>" + esc(g[L()][0]) + "</h3><p>" + esc(g[L()][1]) + '</p><p class="lv">' + esc(t("level")) + " " + lv + (played ? ' · <span class="okt">' + icon("check") + esc(t("bestToday")) + "</span>" : "") + "</p></a>";
+      h += '<a class="card peach game" href="#game-' + g.id + '"><span class="chip">' + esc(g[L()][2]) + "</span><h3>" + esc(g[L()][0]) + "</h3><p>" + esc(g[L()][1]) + '</p><div class="gfoot"><p class="lv">' + esc(t("level")) + " " + lv + (played ? ' · <span class="okt">' + icon("check") + esc(t("bestToday")) + "</span>" : "") + '</p><span class="btn peach">' + esc(t("play")) + "</span></div></a>";
     });
     return h + "</div></section>";
   };
@@ -274,10 +291,10 @@
     let streak = 0;
     for (let k = 0; k < 365; k++) { const ds = fromNum(n - k); const any = p.log.some(l => l.d === ds) || (p.walk[ds] || 0) > 0 || p.brain.some(b => b.d === ds); if (any) streak++; else if (k > 0) break; }
     const mx = Math.max(30, ...days.map(d => d.min));
-    const stat = (label, val, goal, unit) => '<div class="stat"><p class="eyebrow">' + esc(label) + '</p><p class="num"><b>' + val + "</b>" + (goal ? "<span> / " + goal + (unit || "") + "</span>" : "") + "</p>" + (goal ? '<div class="bar"><i style="width:' + Math.min(100, val / goal * 100) + '%"></i></div>' : "") + "</div>";
-    let h = '<section class="stack"><h1>' + esc(t("progress")) + "</h1><h2>" + esc(t("weekTitle")) + "</h2>";
+    const stat = (label, val, goal) => '<div class="card ' + (goal ? "green" : "peach wide") + ' stat"><p class="eyebrow">' + esc(label) + '</p><p class="num"><b>' + val + "</b>" + (goal ? "<span> / " + goal + "</span>" : "") + "</p>" + (goal ? '<div class="bar"><i style="width:' + Math.min(100, val / goal * 100) + '%"></i></div>' : "") + "</div>";
+    let h = '<section class="stack"><header class="hello"><p class="kicker">' + esc(t("weekTitle")) + "</p><h1>" + esc(t("progress")) + "</h1></header>";
     h += '<div class="stats">' + stat(t("minutesActive"), tot, 150) + stat(t("strengthDays"), sd, 2) + stat(t("balanceDays"), bd, 3) + stat(t("brainSessions"), bs, 5) + stat(t("streak"), streak) + "</div>";
-    h += '<div class="card"><div class="chart" role="img" aria-label="' + esc(t("minutesActive")) + '">' + days.map(d => '<div class="col"><span class="v">' + (d.min || "") + '</span><i style="height:' + (d.min / mx * 100) + '%"></i><span class="d">' + T[L()].days[dow(d.ds)] + "</span></div>").join("") + "</div></div>";
+    h += '<div class="card"><p class="eyebrow">' + esc(t("dailyActivity")) + '</p><div class="chart" role="img" aria-label="' + esc(t("minutesActive")) + '">' + days.map(d => '<div class="col"><span class="v">' + (d.min || "") + '</span><span class="track"><i style="height:' + (d.min / mx * 100) + '%"></i></span><span class="d">' + T[L()].days[dow(d.ds)] + "</span></div>").join("") + "</div></div>";
     h += '<div class="card guide"><h2>' + esc(t("guideTitle")) + "</h2><p>" + esc(t("guide1")) + "</p><p>" + esc(t("guide2")) + "</p></div>";
     return h + "</section>";
   };
@@ -289,7 +306,7 @@
     h += '<div class="card"><h3>' + esc(t("textSize")) + '</h3><div class="row wrap">' + T[L()].sizes.map((s, i) => '<button class="btn ' + ((ST.size || 0) === i ? "primary" : "ghost") + '" data-act="size" data-v="' + i + '" style="font-size:' + [1, 1.15, 1.32][i] + 'em">' + esc(s) + "</button>").join("") + "</div>";
     if (p) h += "<h3>" + esc(t("language")) + '</h3><div class="row"><button class="btn ' + (p.lang === "it" ? "primary" : "ghost") + '" data-act="lang" data-v="it">Italiano</button><button class="btn ' + (p.lang === "en" ? "primary" : "ghost") + '" data-act="lang" data-v="en">English</button></div>';
     h += "</div>";
-    h += '<div class="card care"><h2>' + esc(t("caregiver")) + '</h2><p class="muted">' + esc(t("caregiverSub")) + "</p>";
+    h += '<div class="card strong care"><h2>' + esc(t("caregiver")) + '</h2><p class="muted">' + esc(t("caregiverSub")) + "</p>";
     if (!unlocked) {
       h += '<form data-form="pin" class="stack"><label for="pin">' + esc(ST.pin ? t("pin") : t("setPin")) + '</label><input id="pin" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required><button class="btn primary">' + esc(ST.pin ? t("unlock") : t("savePin")) + "</button>" + (ui.flash ? '<p class="err">' + esc(ui.flash) + "</p>" : "") + "</form></div></section>";
       ui.flash = "";
@@ -323,7 +340,7 @@
       list.forEach(e => {
         const f = ed.familiar.includes(e.id), hd = ed.hidden.includes(e.id);
         h += '<li><span class="mname' + (hd ? " struck" : "") + '">' + esc(txt(e, "n")) + '</span><span class="row">' +
-          '<button class="mini' + (f ? " on" : "") + '" data-act="fam" data-id="' + e.id + '" aria-pressed="' + f + '">' + icon("star") + esc(t("familiar")) + "</button>" +
+          '<button class="mini' + (f ? " on" : "") + '" data-act="fam" data-id="' + e.id + '" aria-pressed="' + f + '">' + ic48(f ? "starOn" : "star") + esc(t("familiar")) + "</button>" +
           '<button class="mini' + (hd ? " on warn" : "") + '" data-act="hide" data-id="' + e.id + '" aria-pressed="' + hd + '">' + esc(hd ? t("hidden") : t("hide")) + "</button>" +
           (e.cat === "custom" ? (ui.delId === e.id ? '<button class="mini warn on" data-act="delc" data-id="' + e.id + '">' + esc(t("confirmDel")) + "</button>" : '<button class="mini" data-act="askdel" data-id="' + e.id + '">' + esc(t("del")) + "</button>") : "") +
           "</span></li>";
@@ -368,7 +385,7 @@
     const p = P(), lv = p.lvl[id] || startLvl(p);
     G = { id, lv };
     setTimeout(() => GAME[id].init(), 0);
-    return '<section class="stack"><a class="btn ghost backbtn" href="#brain">' + icon("back") + esc(t("backToGames")) + '</a><div class="gtitle"><h1>' + esc(g[L()][0]) + '</h1><span class="chip plain">' + esc(t("level")) + " " + lv + '</span></div><p class="muted">' + esc(g[L()][1]) + '</p><div id="gamebox" class="gamebox" aria-live="polite"></div></section>';
+    return '<section class="stack"><a class="btn ghost backbtn" href="#brain">' + ic48("back") + esc(t("backToGames")) + '</a><div class="gtitle"><h1>' + esc(g[L()][0]) + '</h1><span class="chip">' + esc(t("level")) + " " + lv + '</span></div><p class="muted">' + esc(g[L()][1]) + '</p><div id="gamebox" class="gamebox" aria-live="polite"></div></section>';
   };
 
   const SYMS = ["🍎", "🌻", "🐱", "🚲", "☕", "🎵", "⚽", "🏠", "🌙", "🐟", "🍋", "🔑", "🎈", "🐦", "🍇", "⛵"];

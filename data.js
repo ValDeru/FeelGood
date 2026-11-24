@@ -145,11 +145,11 @@ const TIPS = {
 
 const T = {
   it: {
-    today: "Oggi", exercises: "Esercizi", brain: "Mente", progress: "Progressi", family: "Famiglia",
+    today: "Oggi", exercises: "Esercizi", brain: "Mente", progress: "Progressi", family: "Famiglia", tabProgress: "Stats", tabFamily: "Profilo",
     hello: ["Buongiorno", "Buon pomeriggio", "Buonasera"], whoUses: "Scegli il tuo gruppo", whoSub: "Gli esercizi cambiano in base all'età. Puoi cambiare gruppo quando vuoi.", grp50: "Esercizi completi: postura, forza, pilates, yoga e Jivamukti.", grp70: "Esercizi dolci e sicuri, da seduti o con appoggio, con equilibrio ogni giorno.",
-    focus: "Oggi ci concentriamo su", done: "Fatto", markDone: "Segna come fatto", swap: "Cambia", open: "Come si fa",
+    focus: "Focus di oggi", continue: "Continua", exCount: "{n} esercizi", exType: "Tipo di esercizio", dailyActivity: "Minuti di attività al giorno", done: "Fatto", markDone: "Segna come fatto", swap: "Cambia", open: "Come si fa",
     ofDone: "di {n} fatti", planTitle: "Il tuo programma di oggi", walk: "Camminata", walkGoal: "Obiettivo di oggi: {n} minuti all'aperto o in casa, a passo svelto ma comodo.",
-    walked: "Hai camminato {n} minuti", gameOfDay: "Gioco della mente di oggi", play: "Gioca", tip: "Consiglio del giorno",
+    walked: "Hai camminato {n} minuti", gameOfDay: "Allena la mente", play: "Gioca", tip: "Consiglio del giorno",
     safetyTitle: "Prima di iniziare", safetyBody: "Questa app non sostituisce il medico o il fisioterapista. Se hai problemi di cuore o di pressione, osteoporosi, dolori, un intervento o una caduta recente, chiedi al medico quali esercizi fanno per te.",
     safetyStop: "Fermati subito se senti dolore al petto, forte mancanza di fiato, capogiri, nausea o un dolore acuto. In emergenza chiama il 112.",
     safetyHow: "Per gli esercizi in piedi tieniti sempre a una sedia stabile o al piano della cucina, con scarpe chiuse e senza tappeti scivolosi.",
@@ -181,11 +181,11 @@ const T = {
     days: ["D", "L", "M", "M", "G", "V", "S"], sizes: ["Normale", "Grande", "Molto grande"]
   },
   en: {
-    today: "Today", exercises: "Exercises", brain: "Mind", progress: "Progress", family: "Family",
+    today: "Today", exercises: "Exercises", brain: "Mind", progress: "Progress", family: "Family", tabProgress: "Stats", tabFamily: "Profile",
     hello: ["Good morning", "Good afternoon", "Good evening"], whoUses: "Choose your group", whoSub: "Exercises change with age. You can switch group at any time.", grp50: "Full range: posture, strength, pilates, yoga and Jivamukti.", grp70: "Gentle, safe exercises, seated or with support, with balance work every day.",
-    focus: "Today's focus", done: "Done", markDone: "Mark as done", swap: "Swap", open: "How to do it",
+    focus: "Today's focus", continue: "Continue", exCount: "{n} exercises", exType: "Exercise type", dailyActivity: "Active minutes per day", done: "Done", markDone: "Mark as done", swap: "Swap", open: "How to do it",
     ofDone: "of {n} done", planTitle: "Your plan for today", walk: "Walk", walkGoal: "Today's goal: {n} minutes, indoors or out, brisk but comfortable.",
-    walked: "You walked {n} minutes", gameOfDay: "Today's mind game", play: "Play", tip: "Tip of the day",
+    walked: "You walked {n} minutes", gameOfDay: "Train your mind", play: "Play", tip: "Tip of the day",
     safetyTitle: "Before you start", safetyBody: "This app does not replace your doctor or physiotherapist. If you have heart or blood pressure problems, osteoporosis, pain, recent surgery or a recent fall, ask your doctor which exercises suit you.",
     safetyStop: "Stop straight away if you feel chest pain, severe breathlessness, dizziness, nausea or sharp pain. In an emergency call 112 (EU) or 999 (UK).",
     safetyHow: "For standing exercises always hold a sturdy chair or kitchen counter, wear closed shoes and avoid slippery rugs.",
